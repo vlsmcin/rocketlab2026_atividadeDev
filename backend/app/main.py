@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+import uvicorn
+from app.router import api_router
 
 app = FastAPI(
     title="Sistema de Compras Online",
@@ -6,12 +8,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-
-@app.get("/", tags=["Health"])
-def health_check():
-    return {"status": "ok", "message": "API rodando com sucesso!"}
-
+app.include_router(api_router)
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

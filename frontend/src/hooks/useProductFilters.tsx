@@ -1,43 +1,51 @@
-import { useMemo, useState } from "react";
-import type { Produto } from "../types/produtos";
+import { useEffect, useState } from "react";
+import api from "../services/api";
 
 type UseProductFiltersResult = {
     searchTerm: string;
     activeCategory: string;
     categories: string[];
-    filteredProducts: Produto[];
     setSearchTerm: (value: string) => void;
     setActiveCategory: (value: string) => void;
 };
 
-function useProductFilters(products: Produto[]): UseProductFiltersResult {
+function useProductFilters(): UseProductFiltersResult {
     const [searchTerm, setSearchTerm] = useState("");
     const [activeCategory, setActiveCategory] = useState("Todos");
+    const [categories, setCategories] = useState<string[]>(["Todos"]);
 
-    const categories = useMemo(
-        () => ["Todos", ...new Set(products.map((product) => product.category))],
-        [products],
-    );
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await api.get("/produtos", {
+                    params: {
+                        limit: 60,
+                        offset: 0,
+                    },
+                });
 
-    const filteredProducts = useMemo(() => {
-        const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
+                const uniqueCategories = new Set<string>();
 
-        return products.filter((product) => {
-            const isInCategory = activeCategory === "Todos" || product.category === activeCategory;
-            const matchesSearch =
-                normalizedSearch.length === 0 ||
-                product.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch) ||
-                product.category.toLocaleLowerCase("pt-BR").includes(normalizedSearch);
+                response.data.forEach((product: { categoria_produto: string }) => {
+                    const comEspacos = product.categoria_produto.replaceAll("_", " ").toLocaleLowerCase("pt-BR");
+                    const categoria = comEspacos.charAt(0).toLocaleUpperCase("pt-BR") + comEspacos.slice(1);
+                    uniqueCategories.add(categoria);
+                });
 
-            return isInCategory && matchesSearch;
-        });
-    }, [activeCategory, products, searchTerm]);
+                setCategories(["Todos", ...uniqueCategories]);
+            } catch (error) {
+                console.error("Error fetching categories:", error);
+                setCategories(["Todos"]);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     return {
         searchTerm,
         activeCategory,
         categories,
-        filteredProducts,
         setSearchTerm,
         setActiveCategory,
     };

@@ -1,17 +1,29 @@
+import { useEffect, useState } from "react";
 import ProductList from "../components/templates";
 import { ProductFilters } from "../components/organisms";
+import { PaginationControls } from "../components/molecules";
 import { useProductFilters, useProductList } from "../hooks";
 
 function HomePage() {
-    const { products, isLoading } = useProductList();
+    const [page, setPage] = useState(1);
     const {
         searchTerm,
         activeCategory,
         categories,
-        filteredProducts,
         setSearchTerm,
         setActiveCategory,
-    } = useProductFilters(products);
+    } = useProductFilters();
+
+    const { products, isLoading, hasNextPage } = useProductList({
+        page,
+        limit: 12,
+        title: searchTerm,
+        categoria: activeCategory === "Todos" ? undefined : activeCategory,
+    });
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeCategory, searchTerm]);
 
     return (
         <main className="min-h-screen bg-slate-50">
@@ -30,7 +42,7 @@ function HomePage() {
                     onCategoryChange={setActiveCategory}
                 />
 
-                {!isLoading && filteredProducts.length === 0 && (
+                {!isLoading && products.length === 0 && (
                     <section className="flex min-h-[45vh] items-center justify-center">
                         <div className="text-center text-slate-600">
                             <p className="text-4xl font-semibold">Nenhum produto encontrado.</p>
@@ -39,7 +51,12 @@ function HomePage() {
                     </section>
                 )}
 
-                {!isLoading && filteredProducts.length > 0 && <ProductList products={filteredProducts} />}
+                {!isLoading && products.length > 0 && (
+                    <>
+                        <ProductList products={products} />
+                        <PaginationControls currentPage={page} hasNextPage={hasNextPage} onPageChange={setPage} />
+                    </>
+                )}
             </div>
 
             {isLoading && (

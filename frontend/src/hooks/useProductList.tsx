@@ -2,8 +2,14 @@ import { useState, useEffect } from "react";
 import type { Produto } from "../types/produtos";
 import api from "../services/api";
 
-function useProductList() : Produto[] {
+type UseProductListResult = {
+    products: Produto[];
+    isLoading: boolean;
+};
+
+function useProductList(): UseProductListResult {
     const [products, setProducts] = useState<Produto[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     function formatCategoria(value: string) {
         const comEspacos = value.replaceAll("_", " ").toLocaleLowerCase("pt-BR");
@@ -12,6 +18,8 @@ function useProductList() : Produto[] {
 
     useEffect(() => {
         const fetchProducts = async () => {
+            setIsLoading(true);
+
             try {
                 const response = await api.get("/produtos");
                 const mappedProducts: Produto[] = response.data.map((product: {
@@ -33,13 +41,15 @@ function useProductList() : Produto[] {
                 setProducts(mappedProducts);
             } catch (error) {
                 console.error("Error fetching products:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchProducts();
     }, []);
 
-    return products;
+    return { products, isLoading };
 }
 
 export default useProductList;

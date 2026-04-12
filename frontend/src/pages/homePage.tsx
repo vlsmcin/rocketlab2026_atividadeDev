@@ -3,7 +3,7 @@ import { ProductFilters } from "../components/organisms";
 import { useProductFilters, useProductList } from "../hooks";
 
 function HomePage() {
-    const products = useProductList();
+    const { products, isLoading } = useProductList();
     const {
         searchTerm,
         activeCategory,
@@ -29,8 +29,27 @@ function HomePage() {
                     activeCategory={activeCategory}
                     onCategoryChange={setActiveCategory}
                 />
-                <ProductList products={filteredProducts} />
+
+                {!isLoading && filteredProducts.length === 0 && (
+                    <section className="flex min-h-[45vh] items-center justify-center">
+                        <div className="text-center text-slate-600">
+                            <p className="text-4xl font-semibold">Nenhum produto encontrado.</p>
+                            <p className="mt-2 text-3xl">Tente ajustar sua busca ou filtros.</p>
+                        </div>
+                    </section>
+                )}
+
+                {!isLoading && filteredProducts.length > 0 && <ProductList products={filteredProducts} />}
             </div>
+
+            {isLoading && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 backdrop-blur-[1px]">
+                    <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/90 px-8 py-6 shadow-xl ring-1 ring-slate-200">
+                        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-600" />
+                        <p className="text-lg font-semibold text-slate-700">Carregando produtos...</p>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

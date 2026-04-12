@@ -5,6 +5,11 @@ import api from "../services/api";
 function useProductList() : Produto[] {
     const [products, setProducts] = useState<Produto[]>([]);
 
+    function formatCategoria(value: string) {
+        const comEspacos = value.replaceAll("_", " ").toLocaleLowerCase("pt-BR");
+        return comEspacos.charAt(0).toLocaleUpperCase("pt-BR") + comEspacos.slice(1);
+    }
+
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -19,7 +24,7 @@ function useProductList() : Produto[] {
                 }) => ({
                     id: product.id_produto,
                     name: product.nome_produto,
-                    category: product.categoria_produto,
+                    category: formatCategoria(product.categoria_produto),
                     urlImage: product.url_imagem ?? "",
                     averageRating: product.media_avaliacao ?? 0,
                     reviewCount: product.quantidade_avaliacoes,

@@ -14,6 +14,7 @@ function ProductList() {
                     averageRating={product.averageRating}
                     imageUrl={product.urlImage}
                     reviewCount={product.reviewCount}
+                    onClick={() => console.log(product.id)}
                 />
             ))}
         </div>

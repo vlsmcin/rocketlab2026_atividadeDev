@@ -7,14 +7,21 @@ type ProductCardProps = {
     imageUrl: string;
     averageRating: number;
     reviewCount: number;
+    onClick?: () => void;
 };
 
-function ProductCard({ name, category, imageUrl, averageRating, reviewCount }: ProductCardProps) {
+function ProductCard({ name, category, imageUrl, averageRating, reviewCount, onClick }: ProductCardProps) {
     return (
-        <div className="w-full rounded-lg bg-white p-4 shadow-md">
+        <button
+            type="button"
+            onClick={onClick}
+            className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white text-left shadow-md ring-1 ring-gray-100 transition-all duration-300 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
+        >
             <ImageWithHover src={imageUrl} alt={name} />
-            <ProductFooterCard name={name} category={category} averageReview={averageRating} reviewCount={reviewCount} />
-        </div>
+            <div className="flex flex-1 p-4">
+                <ProductFooterCard name={name} category={category} averageReview={averageRating} reviewCount={reviewCount} />
+            </div>
+        </button>
     );
 }
 

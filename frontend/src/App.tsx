@@ -1,10 +1,13 @@
 import './App.css'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import HomePage from './pages/homePage'
 
 function App() {
   return (
-    <>
-      <h1 className="text-3xl font-bold underline"> Testando a config</h1>
-    </>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 

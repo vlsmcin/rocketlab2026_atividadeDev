@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from app.controller.health import router as health_router
-from app.controller.produtos import router as produtos_router
+from app.controllers.health import router as health_router
+from app.controllers.produtos import router as produtos_router
 
 api_router = APIRouter()
 

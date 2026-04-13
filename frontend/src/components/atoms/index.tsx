@@ -5,6 +5,10 @@ import ImageWithHover from "./imageWithHover";
 import ReviewCount from "./reviewCount";
 import SearchBar from "./searchBar";
 import CategoryFilterChip from "./categoryFilterChip";
+import SectionTitle from "./sectionTitle";
+import InfoPill from "./infoPill";
+import DetailMetric from "./detailMetric";
+import ReviewAvatar from "./reviewAvatar";
 
 export {
 	ReviewStars,
@@ -14,4 +18,8 @@ export {
 	ReviewCount,
 	SearchBar,
 	CategoryFilterChip,
+	SectionTitle,
+	InfoPill,
+	DetailMetric,
+	ReviewAvatar,
 };

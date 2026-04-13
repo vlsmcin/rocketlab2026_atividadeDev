@@ -3,9 +3,10 @@ import { ProductCard } from "../organisms";
 
 type ProductListProps = {
     products: Produto[];
+    onProductClick: (productId: string) => void;
 };
 
-function ProductList({ products }: ProductListProps) {
+function ProductList({ products, onProductClick }: ProductListProps) {
 
     return (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -17,7 +18,7 @@ function ProductList({ products }: ProductListProps) {
                     averageRating={product.averageRating}
                     imageUrl={product.urlImage}
                     reviewCount={product.reviewCount}
-                    onClick={() => console.log(product.id)}
+                    onClick={() => onProductClick(product.id)}
                 />
             ))}
         </div>

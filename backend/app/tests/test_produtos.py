@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.controllers.produtos import router as produtos_router
+from app.controllers.produtos_getters import router as produtos_router
 from app.database import Base, get_db
 from app.models import AvaliacaoPedido, CategoriaImagem, Consumidor, ItemPedido, Pedido, Produto, Vendedor
 

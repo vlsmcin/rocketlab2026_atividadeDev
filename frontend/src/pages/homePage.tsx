@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import ProductList from "../components/templates";
+import { useNavigate } from "react-router-dom";
+import { ProductList } from "../components/templates";
 import { ProductFilters } from "../components/organisms";
 import { PaginationControls } from "../components/molecules";
 import { useProductFilters, useProductList } from "../hooks";
 
 function HomePage() {
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const {
         searchTerm,
@@ -53,7 +55,7 @@ function HomePage() {
 
                 {!isLoading && products.length > 0 && (
                     <>
-                        <ProductList products={products} />
+                        <ProductList products={products} onProductClick={(productId) => navigate(`/produtos/${productId}`)} />
                         <PaginationControls currentPage={page} hasNextPage={hasNextPage} onPageChange={setPage} />
                     </>
                 )}

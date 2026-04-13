@@ -14,6 +14,7 @@ from app.views.produtos import AvaliacaoView, ProdutoDetailView, ProdutoListView
 
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
+
 @router.get("")
 def get_produtos(
     title: str | None = None,
@@ -69,15 +70,16 @@ def get_produtos(
 
     return [
         ProdutoListView(
-            id_produto = id_produto,
-            nome_produto = nome_produto,
-            categoria_produto = categoria_produto,
-            url_imagem = url_imagem,
-            media_avaliacao = round(media_avaliacao, 2) if media_avaliacao is not None else None,
-            quantidade_avaliacoes = quantidade_avaliacoes
+            id_produto=id_produto,
+            nome_produto=nome_produto,
+            categoria_produto=categoria_produto,
+            url_imagem=url_imagem,
+            media_avaliacao=round(media_avaliacao, 2) if media_avaliacao is not None else None,
+            quantidade_avaliacoes=quantidade_avaliacoes,
         )
         for id_produto, nome_produto, categoria_produto, url_imagem, media_avaliacao, quantidade_avaliacoes in produtos
     ]
+
 
 @router.get("/{id_produto}")
 def get_produto_by_id(id_produto: str, db: Session = Depends(get_db)):

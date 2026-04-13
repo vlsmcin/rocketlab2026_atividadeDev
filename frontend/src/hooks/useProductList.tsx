@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import type { Produto } from "../types/produtos";
+import type { BackendProdutoListView, Produto } from "../types/produtos";
 import api from "../services/api";
+import { formatCategoria } from "../utils/produtos";
 
 type UseProductListParams = {
     page: number;
@@ -20,11 +21,6 @@ function useProductList({ page, limit, title, categoria }: UseProductListParams)
     const [isLoading, setIsLoading] = useState(true);
     const [hasNextPage, setHasNextPage] = useState(false);
 
-    function formatCategoria(value: string) {
-        const comEspacos = value.replaceAll("_", " ").toLocaleLowerCase("pt-BR");
-        return comEspacos.charAt(0).toLocaleUpperCase("pt-BR") + comEspacos.slice(1);
-    }
-
     useEffect(() => {
         const fetchProducts = async () => {
             setIsLoading(true);
@@ -38,14 +34,7 @@ function useProductList({ page, limit, title, categoria }: UseProductListParams)
                         offset: (page - 1) * limit,
                     },
                 });
-                const mappedProducts: Produto[] = response.data.map((product: {
-                    id_produto: string;
-                    nome_produto: string;
-                    categoria_produto: string;
-                    url_imagem: string | null;
-                    media_avaliacao: number | null;
-                    quantidade_avaliacoes: number;
-                }) => ({
+                const mappedProducts: Produto[] = response.data.map((product: BackendProdutoListView) => ({
                     id: product.id_produto,
                     name: product.nome_produto,
                     category: formatCategoria(product.categoria_produto),

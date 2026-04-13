@@ -1,3 +1,4 @@
 import ProductList from "./productList";
+import ProductDetailView from "./productDetailView";
 
-export default ProductList;
+export { ProductDetailView, ProductList };

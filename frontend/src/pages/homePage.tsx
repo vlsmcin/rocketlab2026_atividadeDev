@@ -3,14 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { ProductList } from "../components/templates";
 import { ProductCreateModal, ProductFilters } from "../components/organisms";
 import { PaginationControls } from "../components/molecules";
+import { useAuth } from "../context/authContext";
 import { useProductCreate, useProductFilters, useProductList } from "../hooks";
 import type { ProdutoCreateFormData } from "../types/produtos";
 import { normalizeCategoriaForBackend, parseOptionalNumberInput } from "../utils/produtos";
 
 function HomePage() {
     const navigate = useNavigate();
+    const {
+        user,
+        isAdmin,
+        isAuthenticated,
+        isLoadingSession,
+        isAuthenticating,
+        loginError,
+        login,
+        logout,
+    } = useAuth();
     const [page, setPage] = useState(1);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
     const {
         searchTerm,
         activeCategory,
@@ -31,6 +45,31 @@ function HomePage() {
     const handleOpenCreateModal = () => {
         clearCreateError();
         setIsCreateModalOpen(true);
+    };
+
+    const handleOpenLoginModal = () => {
+        setPassword("");
+        setIsLoginModalOpen(true);
+    };
+
+    const handleCloseLoginModal = () => {
+        if (isAuthenticating) {
+            return;
+        }
+
+        setIsLoginModalOpen(false);
+    };
+
+    const handleLoginSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const success = await login(username.trim(), password);
+
+        if (!success) {
+            return;
+        }
+
+        setPassword("");
+        setIsLoginModalOpen(false);
     };
 
     const handleCloseCreateModal = () => {
@@ -74,14 +113,42 @@ function HomePage() {
                 <div className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-4 px-5 py-6 sm:flex-row sm:items-center sm:px-6 lg:px-8">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">Gerenciador de Produtos</h1>
+                        {isAuthenticated && user && (
+                            <p className="mt-1 text-sm text-slate-600">
+                                Logado como {user.username} ({user.role})
+                            </p>
+                        )}
                     </div>
-                    <button
-                        type="button"
-                        onClick={handleOpenCreateModal}
-                        className="w-full cursor-pointer rounded-xl bg-indigo-600 px-6 py-3 text-base font-semibold text-white transition hover:bg-indigo-700 sm:w-auto sm:text-lg"
-                    >
-                        + Novo Produto
-                    </button>
+
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                        {isAdmin ? (
+                            <button
+                                type="button"
+                                onClick={handleOpenCreateModal}
+                                className="w-full cursor-pointer rounded-xl bg-indigo-600 px-6 py-3 text-base font-semibold text-white transition hover:bg-indigo-700 sm:w-auto sm:text-lg"
+                            >
+                                + Novo Produto
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleOpenLoginModal}
+                                className="w-full cursor-pointer rounded-xl bg-indigo-600 px-6 py-3 text-base font-semibold text-white transition hover:bg-indigo-700 sm:w-auto sm:text-lg"
+                            >
+                                Entrar
+                            </button>
+                        )}
+
+                        {isAuthenticated && (
+                            <button
+                                type="button"
+                                onClick={logout}
+                                className="w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto"
+                            >
+                                Sair
+                            </button>
+                        )}
+                    </div>
                 </div>
             </header>
 
@@ -128,6 +195,81 @@ function HomePage() {
                 onClose={handleCloseCreateModal}
                 onSubmit={handleCreateProduct}
             />
+
+            {isLoginModalOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 px-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
+                        <h2 className="text-2xl font-bold text-slate-900">Entrar como administrador</h2>
+                        <p className="mt-2 text-sm text-slate-600">Apenas administradores veem a opcao de criar produtos.</p>
+
+                        <form className="mt-6 space-y-4" onSubmit={handleLoginSubmit}>
+                            <div>
+                                <label className="mb-1 block text-sm font-semibold text-slate-700" htmlFor="login-username">
+                                    Usuario
+                                </label>
+                                <input
+                                    id="login-username"
+                                    type="text"
+                                    value={username}
+                                    onChange={(event) => setUsername(event.target.value)}
+                                    placeholder="admin@example.com"
+                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                                    autoComplete="username"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-semibold text-slate-700" htmlFor="login-password">
+                                    Senha
+                                </label>
+                                <input
+                                    id="login-password"
+                                    type="password"
+                                    value={password}
+                                    onChange={(event) => setPassword(event.target.value)}
+                                    placeholder="Sua senha"
+                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                                    autoComplete="current-password"
+                                    required
+                                />
+                            </div>
+
+                            {loginError && (
+                                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                                    {loginError}
+                                </p>
+                            )}
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={handleCloseLoginModal}
+                                    className="flex-1 cursor-pointer rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-semibold text-slate-700 transition hover:bg-slate-100"
+                                    disabled={isAuthenticating}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 cursor-pointer rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                    disabled={isAuthenticating}
+                                >
+                                    {isAuthenticating ? "Entrando..." : "Entrar"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {isLoadingSession && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/35">
+                    <div className="rounded-xl bg-white px-6 py-4 text-sm font-semibold text-slate-700 shadow ring-1 ring-slate-200">
+                        Validando sessao...
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

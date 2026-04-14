@@ -11,6 +11,16 @@ function normalizeCategoriaForBackend(value: string) {
         .toLocaleUpperCase("pt-BR");
 }
 
+function parseOptionalNumberInput(value: string) {
+    if (!value.trim()) {
+        return null;
+    }
+
+    const parsedValue = Number(value.replace(",", "."));
+
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
 function formatCurrencyBRL(value: number) {
     return new Intl.NumberFormat("pt-BR", {
         style: "currency",
@@ -58,4 +68,5 @@ export {
     formatWeight,
     getInitials,
     normalizeCategoriaForBackend,
+    parseOptionalNumberInput,
 };

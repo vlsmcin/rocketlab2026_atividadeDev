@@ -8,7 +8,6 @@ def test_create_produto_retorna_201(client: TestClient, db_session):
     response = client.post(
         "/produtos",
         json={
-            "id_produto": "prod-crud-1",
             "nome_produto": "Camera 4K",
             "categoria_produto": "eletronicos",
             "peso_produto_gramas": 800,
@@ -19,55 +18,23 @@ def test_create_produto_retorna_201(client: TestClient, db_session):
     )
 
     assert response.status_code == 201
-    assert response.json()["id_produto"] == "prod-crud-1"
+    id_produto = response.json()["id_produto"]
+    assert isinstance(id_produto, str)
+    assert len(id_produto) == 32
 
-    produto = db_session.get(Produto, "prod-crud-1")
+    produto = db_session.get(Produto, id_produto)
     assert produto is not None
     assert produto.nome_produto == "Camera 4K"
-
-
-def test_create_produto_retorna_409_para_id_duplicado(client: TestClient, db_session):
-    db_session.add(
-        Produto(
-            id_produto="prod-dup-1",
-            nome_produto="Produto Original",
-            categoria_produto="geral",
-            peso_produto_gramas=100,
-            comprimento_centimetros=10,
-            altura_centimetros=10,
-            largura_centimetros=10,
-        )
-    )
-    db_session.commit()
-
-    response = client.post(
-        "/produtos",
-        json={
-            "id_produto": "prod-dup-1",
-            "nome_produto": "Produto Duplicado",
-            "categoria_produto": "geral",
-        },
-    )
-
-    assert response.status_code == 409
-    assert response.json() == {"detail": "Produto ja existe"}
 
 
 @pytest.mark.parametrize(
     "payload",
     [
         {
-            "id_produto": "   ",
-            "nome_produto": "Produto Teste",
-            "categoria_produto": "eletronicos",
-        },
-        {
-            "id_produto": "prod-invalid-2",
             "nome_produto": "   ",
             "categoria_produto": "eletronicos",
         },
         {
-            "id_produto": "prod-invalid-3",
             "nome_produto": "Produto Teste",
             "categoria_produto": "   ",
         },
@@ -84,3 +51,26 @@ def test_create_produto_retorna_400_quando_campo_obrigatorio_esta_vazio(
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Campos obrigatorios nao podem ser vazios"}
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
+            "categoria_produto": "eletronicos",
+        },
+        {
+            "nome_produto": "Produto Teste",
+        },
+    ],
+)
+def test_create_produto_retorna_422_quando_campo_obrigatorio_esta_ausente(
+    client: TestClient,
+    payload: dict,
+):
+    response = client.post(
+        "/produtos",
+        json=payload,
+    )
+
+    assert response.status_code == 422

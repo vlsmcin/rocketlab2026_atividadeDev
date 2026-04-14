@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
+from app.cache import produto_query_cache
 from app.database import get_db
 from app.models.produto import Produto
 from app.views.produtos import ProdutoWritePayload, ProdutoWriteResponse
@@ -23,6 +24,7 @@ def create_produto(payload: ProdutoWritePayload, db: Session = Depends(get_db)):
     db.add(produto)
     db.commit()
     db.refresh(produto)
+    produto_query_cache.clear()
 
     return ProdutoWriteResponse(
         id_produto=produto.id_produto,

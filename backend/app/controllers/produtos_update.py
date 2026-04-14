@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.cache import produto_query_cache
 from app.database import get_db
 from app.models.produto import Produto
 from app.views.produtos import ProdutoUpdatePayload, ProdutoWriteResponse
@@ -33,6 +34,7 @@ def update_produto(id_produto: str, payload: ProdutoUpdatePayload, db: Session =
 
     db.commit()
     db.refresh(produto)
+    produto_query_cache.clear()
 
     return ProdutoWriteResponse(
         id_produto=produto.id_produto,

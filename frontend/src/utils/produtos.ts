@@ -4,6 +4,13 @@ function formatCategoria(value: string) {
     return comEspacos.charAt(0).toLocaleUpperCase("pt-BR") + comEspacos.slice(1);
 }
 
+function normalizeCategoriaForBackend(value: string) {
+    return value
+        .trim()
+        .replaceAll(/\s+/g, "_")
+        .toLocaleUpperCase("pt-BR");
+}
+
 function formatCurrencyBRL(value: number) {
     return new Intl.NumberFormat("pt-BR", {
         style: "currency",
@@ -50,4 +57,5 @@ export {
     formatDimensions,
     formatWeight,
     getInitials,
+    normalizeCategoriaForBackend,
 };

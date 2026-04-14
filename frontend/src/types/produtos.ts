@@ -66,6 +66,24 @@ type ProdutoDetail = Produto & {
     sellers: ProdutoVendedor[];
 };
 
+type ProdutoCreatePayload = {
+    nome_produto: string;
+    categoria_produto: string;
+    peso_produto_gramas?: number | null;
+    comprimento_centimetros?: number | null;
+    largura_centimetros?: number | null;
+    altura_centimetros?: number | null;
+};
+
+type ProdutoCreateFormData = {
+    nomeProduto: string;
+    categoriaProduto: string;
+    pesoProdutoGramas: string;
+    comprimentoCentimetros: string;
+    larguraCentimetros: string;
+    alturaCentimetros: string;
+};
+
 export type {
     BackendAvaliacao,
     BackendProdutoDetailView,
@@ -73,6 +91,8 @@ export type {
     BackendVendedor,
     Produto,
     ProdutoAvaliacao,
+    ProdutoCreateFormData,
+    ProdutoCreatePayload,
     ProdutoDetail,
     ProdutoVendedor,
 };

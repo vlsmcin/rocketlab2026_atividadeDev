@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { BackendProdutoListView, Produto } from "../types/produtos";
 import api from "../services/api";
 import { formatCategoria } from "../utils/produtos";
@@ -14,12 +14,18 @@ type UseProductListResult = {
     products: Produto[];
     isLoading: boolean;
     hasNextPage: boolean;
+    refetchProducts: () => void;
 };
 
 function useProductList({ page, limit, title, categoria }: UseProductListParams): UseProductListResult {
     const [products, setProducts] = useState<Produto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [hasNextPage, setHasNextPage] = useState(false);
+    const [requestVersion, setRequestVersion] = useState(0);
+
+    const refetchProducts = useCallback(() => {
+        setRequestVersion((current) => current + 1);
+    }, []);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -55,9 +61,9 @@ function useProductList({ page, limit, title, categoria }: UseProductListParams)
         };
 
         fetchProducts();
-    }, [categoria, limit, page, title]);
+    }, [categoria, limit, page, requestVersion, title]);
 
-    return { products, isLoading, hasNextPage };
+    return { products, isLoading, hasNextPage, refetchProducts };
 }
 
 export default useProductList;

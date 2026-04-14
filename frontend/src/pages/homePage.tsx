@@ -71,22 +71,21 @@ function HomePage() {
     return (
         <main className="min-h-screen bg-slate-50">
             <header className="border-b border-slate-200 bg-slate-100/90">
-                <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-6">
+                <div className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-4 px-5 py-6 sm:flex-row sm:items-center sm:px-6 lg:px-8">
                     <div>
-                        <h1 className="text-4xl font-bold text-slate-900">Gerenciador de Produtos</h1>
-                        <p className="mt-1 text-lg text-slate-600">{products.length} produtos no catálogo</p>
+                        <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">Gerenciador de Produtos</h1>
                     </div>
                     <button
                         type="button"
                         onClick={handleOpenCreateModal}
-                        className="cursor-pointer rounded-xl bg-indigo-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-indigo-700"
+                        className="w-full cursor-pointer rounded-xl bg-indigo-600 px-6 py-3 text-base font-semibold text-white transition hover:bg-indigo-700 sm:w-auto sm:text-lg"
                     >
                         + Novo Produto
                     </button>
                 </div>
             </header>
 
-            <div className="container mx-auto px-4 py-8">
+            <div className="mx-auto w-full max-w-7xl px-5 py-6 sm:px-6 sm:py-8 lg:px-8">
                 <ProductFilters
                     searchTerm={searchTerm}
                     onSearchChange={setSearchTerm}

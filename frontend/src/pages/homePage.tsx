@@ -5,17 +5,7 @@ import { ProductCreateModal, ProductFilters } from "../components/organisms";
 import { PaginationControls } from "../components/molecules";
 import { useProductCreate, useProductFilters, useProductList } from "../hooks";
 import type { ProdutoCreateFormData } from "../types/produtos";
-import { normalizeCategoriaForBackend } from "../utils/produtos";
-
-function parseOptionalNumber(value: string) {
-    if (!value.trim()) {
-        return null;
-    }
-
-    const parsedValue = Number(value.replace(",", "."));
-
-    return Number.isFinite(parsedValue) ? parsedValue : null;
-}
+import { normalizeCategoriaForBackend, parseOptionalNumberInput } from "../utils/produtos";
 
 function HomePage() {
     const navigate = useNavigate();
@@ -56,10 +46,10 @@ function HomePage() {
         const created = await createProduct({
             nome_produto: formValues.nomeProduto.trim(),
             categoria_produto: normalizeCategoriaForBackend(formValues.categoriaProduto),
-            peso_produto_gramas: parseOptionalNumber(formValues.pesoProdutoGramas),
-            comprimento_centimetros: parseOptionalNumber(formValues.comprimentoCentimetros),
-            largura_centimetros: parseOptionalNumber(formValues.larguraCentimetros),
-            altura_centimetros: parseOptionalNumber(formValues.alturaCentimetros),
+            peso_produto_gramas: parseOptionalNumberInput(formValues.pesoProdutoGramas),
+            comprimento_centimetros: parseOptionalNumberInput(formValues.comprimentoCentimetros),
+            largura_centimetros: parseOptionalNumberInput(formValues.larguraCentimetros),
+            altura_centimetros: parseOptionalNumberInput(formValues.alturaCentimetros),
         });
 
         if (!created) {

@@ -2,6 +2,15 @@
 
 Projeto full stack com backend em FastAPI + SQLite e frontend em React + Vite para gerenciamento e consulta de catalogo de produtos.
 
+## Demonstracao em video
+
+- Video de funcionamento: [public/video_funcionamento.mp4](public/video_funcionamento.mp4)
+- Caso não carregue o vídeo está em public
+
+<video src="public/video_funcionamento.mp4" controls width="900">
+	Seu navegador nao suporta reproducao de video HTML5.
+</video>
+
 ## Status dos requisitos principais
 
 Os requisitos abaixo foram atendidos:

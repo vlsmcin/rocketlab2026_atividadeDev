@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../services/api";
 import type { BackendProdutoDetailView, ProdutoDetail } from "../types/produtos";
 import { formatCategoria } from "../utils/produtos";
@@ -7,12 +7,18 @@ type UseProductDetailResult = {
     product: ProdutoDetail | null;
     isLoading: boolean;
     error: string | null;
+    refetchProduct: () => void;
 };
 
 function useProductDetail(idProduto?: string): UseProductDetailResult {
     const [product, setProduct] = useState<ProdutoDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [requestVersion, setRequestVersion] = useState(0);
+
+    const refetchProduct = useCallback(() => {
+        setRequestVersion((current) => current + 1);
+    }, []);
 
     useEffect(() => {
         let isActive = true;
@@ -82,9 +88,9 @@ function useProductDetail(idProduto?: string): UseProductDetailResult {
         return () => {
             isActive = false;
         };
-    }, [idProduto]);
+    }, [idProduto, requestVersion]);
 
-    return { product, isLoading, error };
+    return { product, isLoading, error, refetchProduct };
 }
 
 export default useProductDetail;

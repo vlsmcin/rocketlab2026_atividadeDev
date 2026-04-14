@@ -414,3 +414,96 @@ def test_get_produto_by_id_retorna_404_quando_nao_encontrado(client: TestClient,
 
 	assert response.status_code == 404
 	assert response.json() == {"detail": "Produto nao encontrado"}
+
+
+def test_get_produto_by_id_nao_duplica_quantidade_avaliacoes_com_itens_repetidos(client: TestClient, db_session):
+	db_session.add_all(
+		[
+			Consumidor(
+				id_consumidor="cons-dup-1",
+				prefixo_cep="01000",
+				nome_consumidor="Cliente Dup",
+				cidade="Sao Paulo",
+				estado="SP",
+			),
+			Produto(
+				id_produto="prod-dup-1",
+				nome_produto="Produto Dup",
+				categoria_produto="audio",
+				peso_produto_gramas=500,
+				comprimento_centimetros=20,
+				altura_centimetros=10,
+				largura_centimetros=15,
+			),
+			CategoriaImagem(
+				categoria_produto="audio",
+				url_imagem="https://example.com/audio-dup.jpg",
+			),
+			Vendedor(
+				id_vendedor="vend-dup-1",
+				nome_vendedor="Loja Dup",
+				prefixo_cep="02000",
+				cidade="Sao Paulo",
+				estado="SP",
+			),
+			Pedido(
+				id_pedido="ped-dup-1",
+				id_consumidor="cons-dup-1",
+				status="entregue",
+			),
+			Pedido(
+				id_pedido="ped-dup-2",
+				id_consumidor="cons-dup-1",
+				status="entregue",
+			),
+			# Mesmo produto repetido em dois itens do mesmo pedido.
+			ItemPedido(
+				id_pedido="ped-dup-1",
+				id_item=1,
+				id_produto="prod-dup-1",
+				id_vendedor="vend-dup-1",
+				preco_BRL=100.0,
+				preco_frete=10.0,
+			),
+			ItemPedido(
+				id_pedido="ped-dup-1",
+				id_item=2,
+				id_produto="prod-dup-1",
+				id_vendedor="vend-dup-1",
+				preco_BRL=90.0,
+				preco_frete=9.0,
+			),
+			ItemPedido(
+				id_pedido="ped-dup-2",
+				id_item=1,
+				id_produto="prod-dup-1",
+				id_vendedor="vend-dup-1",
+				preco_BRL=95.0,
+				preco_frete=8.0,
+			),
+			AvaliacaoPedido(
+				id_avaliacao="ava-dup-1",
+				id_pedido="ped-dup-1",
+				avaliacao=1,
+				titulo_comentario="Top",
+				comentario="Muito bom",
+			),
+			AvaliacaoPedido(
+				id_avaliacao="ava-dup-2",
+				id_pedido="ped-dup-2",
+				avaliacao=5,
+				titulo_comentario="Otimo",
+				comentario="Excelente",
+			),
+		]
+	)
+	db_session.commit()
+
+	response = client.get("/produtos/prod-dup-1")
+
+	assert response.status_code == 200
+	data = response.json()
+	assert data["quantidade_avaliacoes"] == 2
+	assert data["media_avaliacao"] == 3.0
+	assert data["avaliacoes"] is not None
+	assert len(data["avaliacoes"]) == 2

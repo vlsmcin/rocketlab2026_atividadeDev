@@ -18,6 +18,16 @@ def update_produto(id_produto: str, payload: ProdutoUpdatePayload, db: Session =
     if not update_data:
         raise HTTPException(status_code=400, detail="Nenhum campo para atualizar")
 
+    if "nome_produto" in update_data and (
+        update_data["nome_produto"] is None or not update_data["nome_produto"].strip()
+    ):
+        raise HTTPException(status_code=400, detail="Campos texto nao podem ser vazios")
+
+    if "categoria_produto" in update_data and (
+        update_data["categoria_produto"] is None or not update_data["categoria_produto"].strip()
+    ):
+        raise HTTPException(status_code=400, detail="Campos texto nao podem ser vazios")
+
     for field, value in update_data.items():
         setattr(produto, field, value)
 

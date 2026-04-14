@@ -12,6 +12,7 @@ import pandas as pd
 from sqlalchemy import insert, select
 
 from app.database import SessionLocal
+from app.config import settings
 from app.models import (
     AvaliacaoPedido,
     CategoriaImagem,
@@ -19,8 +20,10 @@ from app.models import (
     ItemPedido,
     Pedido,
     Produto,
+    User,
     Vendedor,
 )
+from app.security import hash_password
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -98,6 +101,35 @@ SEED_TABLES: list[
         ),
     ),
 ]
+
+
+def seed_default_admin(*, force: bool = False) -> None:
+    with SessionLocal() as session:
+        existing_admin = session.scalar(select(User).where(User.username == settings.DEFAULT_ADMIN_USERNAME))
+
+        if existing_admin is not None and not force:
+            if existing_admin.role != "admin" or not existing_admin.is_active:
+                existing_admin.role = "admin"
+                existing_admin.is_active = True
+                session.commit()
+            print(f"admin: usuario padrao ja existe ({settings.DEFAULT_ADMIN_USERNAME})")
+            return
+
+        if existing_admin is not None:
+            session.delete(existing_admin)
+            session.commit()
+
+        session.add(
+            User(
+                id_user="admin-default-user",
+                username=settings.DEFAULT_ADMIN_USERNAME,
+                password_hash=hash_password(settings.DEFAULT_ADMIN_PASSWORD),
+                role="admin",
+                is_active=True,
+            )
+        )
+        session.commit()
+        print(f"admin: usuario padrao criado ({settings.DEFAULT_ADMIN_USERNAME})")
 
 
 def normalize_value(value: object) -> object:
@@ -184,22 +216,33 @@ def seed_table(
 def seed_all() -> None:
     if all(table_has_rows(model) for _, _, model, _ in SEED_TABLES):
         print("Seed já aplicado. Nenhum dado novo foi carregado.")
-        return
+    else:
+        for label, csv_filename, model, frame_transform in SEED_TABLES:
+            inserted_rows = seed_table(
+                csv_filename=csv_filename,
+                model=model,
+                frame_transform=frame_transform,
+            )
+            print(f"{label}: {inserted_rows} linhas processadas")
 
-    for label, csv_filename, model, frame_transform in SEED_TABLES:
-        inserted_rows = seed_table(
-            csv_filename=csv_filename,
-            model=model,
-            frame_transform=frame_transform,
-        )
-        print(f"{label}: {inserted_rows} linhas processadas")
+    seed_default_admin()
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Carrega os CSVs iniciais no banco de dados.")
     parser.add_argument(
         "--only",
-        choices=["consumidores", "produtos", "vendedores", "categoria_imagens", "pedidos", "itens_pedidos", "avaliacoes_pedidos", "all"],
+        choices=[
+            "consumidores",
+            "produtos",
+            "vendedores",
+            "categoria_imagens",
+            "pedidos",
+            "itens_pedidos",
+            "avaliacoes_pedidos",
+            "admin",
+            "all",
+        ],
         default="all",
         help="Seleciona um dataset específico para carregar.",
     )
@@ -219,9 +262,14 @@ def main() -> None:
         if args.only == "all":
             if not args.force and all(table_has_rows(model) for _, _, model, _ in SEED_TABLES):
                 print("Seed já aplicado. Nenhum dado novo foi carregado.")
+                seed_default_admin(force=args.force)
                 return 0
 
             seed_all()
+            return 0
+
+        if args.only == "admin":
+            seed_default_admin(force=args.force)
             return 0
 
         csv_filename, model, frame_transform = jobs[args.only]

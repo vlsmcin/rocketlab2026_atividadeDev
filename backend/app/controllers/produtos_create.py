@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from uuid import uuid4
 
 from app.database import get_db
 from app.models.produto import Produto
@@ -10,14 +11,15 @@ router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
 @router.post("", response_model=ProdutoWriteResponse, status_code=status.HTTP_201_CREATED)
 def create_produto(payload: ProdutoWritePayload, db: Session = Depends(get_db)):
-    if not payload.id_produto.strip() or not payload.nome_produto.strip() or not payload.categoria_produto.strip():
+    if not payload.nome_produto.strip() or not payload.categoria_produto.strip():
         raise HTTPException(status_code=400, detail="Campos obrigatorios nao podem ser vazios")
 
-    produto_existente = db.get(Produto, payload.id_produto)
-    if produto_existente:
-        raise HTTPException(status_code=409, detail="Produto ja existe")
+    id_produto = uuid4().hex
 
-    produto = Produto(**payload.model_dump())
+    while db.get(Produto, id_produto) is not None:
+        id_produto = uuid4().hex
+
+    produto = Produto(id_produto=id_produto, **payload.model_dump())
     db.add(produto)
     db.commit()
     db.refresh(produto)

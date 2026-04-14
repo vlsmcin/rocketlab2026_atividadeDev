@@ -39,7 +39,6 @@ class ProdutoDetailView(BaseModel):
 
 
 class ProdutoWritePayload(BaseModel):
-    id_produto: str
     nome_produto: str
     categoria_produto: str
     peso_produto_gramas: float | None = None

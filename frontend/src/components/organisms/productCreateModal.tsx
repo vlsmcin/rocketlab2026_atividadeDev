@@ -15,6 +15,15 @@ type ProductCreateModalProps = {
     onSubmit: (values: ProdutoCreateFormData) => Promise<void>;
 };
 
+type FormErrors = {
+    nomeProduto?: string;
+    categoriaProduto?: string;
+    pesoProdutoGramas?: string;
+    comprimentoCentimetros?: string;
+    larguraCentimetros?: string;
+    alturaCentimetros?: string;
+};
+
 const INITIAL_FORM_VALUES: ProdutoCreateFormData = {
     nomeProduto: "",
     categoriaProduto: "",
@@ -40,6 +49,39 @@ function ProductCreateModal({
         [categories],
     );
     const [formValues, setFormValues] = useState<ProdutoCreateFormData>(INITIAL_FORM_VALUES);
+    const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+    const validateForm = (): boolean => {
+        const errors: FormErrors = {};
+
+        if (!formValues.nomeProduto.trim()) {
+            errors.nomeProduto = "Nome é obrigatório";
+        }
+
+        if (!formValues.categoriaProduto.trim()) {
+            errors.categoriaProduto = "Categoria é obrigatória";
+        }
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const validateNumberField = (fieldName: string, value: string) => {
+        const newErrors = { ...formErrors };
+
+        if (value.trim() === "") {
+            delete newErrors[fieldName as keyof FormErrors];
+        } else {
+            const numValue = Number(value.replace(",", "."));
+            if (isNaN(numValue) || numValue < 0) {
+                newErrors[fieldName as keyof FormErrors] = "Deve ser um número válido e positivo";
+            } else {
+                delete newErrors[fieldName as keyof FormErrors];
+            }
+        }
+
+        setFormErrors(newErrors);
+    };
 
     useEffect(() => {
         if (!isOpen) {
@@ -51,6 +93,7 @@ function ProductCreateModal({
             ...initialValues,
             categoriaProduto: initialValues?.categoriaProduto ?? availableCategories[0] ?? "",
         });
+        setFormErrors({});
     }, [availableCategories, initialValues, isOpen]);
 
     useEffect(() => {
@@ -77,6 +120,11 @@ function ProductCreateModal({
 
     const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
+
         await onSubmit(formValues);
     };
 
@@ -105,6 +153,7 @@ function ProductCreateModal({
                             onChange={(event) => setFormValues((current) => ({ ...current, nomeProduto: event.target.value }))}
                             placeholder="Nome do produto"
                             required
+                            errorMessage={formErrors.nomeProduto}
                             className="md:col-span-2"
                         />
 
@@ -117,6 +166,7 @@ function ProductCreateModal({
                             required
                             listId="product-categories"
                             options={availableCategories}
+                            errorMessage={formErrors.categoriaProduto}
                             className="md:col-span-2"
                         />
 
@@ -127,7 +177,11 @@ function ProductCreateModal({
                             step="0.01"
                             min="0"
                             value={formValues.pesoProdutoGramas}
-                            onChange={(event) => setFormValues((current) => ({ ...current, pesoProdutoGramas: event.target.value }))}
+                            onChange={(event) => {
+                                setFormValues((current) => ({ ...current, pesoProdutoGramas: event.target.value }));
+                                validateNumberField("pesoProdutoGramas", event.target.value);
+                            }}
+                            errorMessage={formErrors.pesoProdutoGramas}
                             placeholder="Ex.: 850"
                         />
 
@@ -138,7 +192,11 @@ function ProductCreateModal({
                             step="0.01"
                             min="0"
                             value={formValues.comprimentoCentimetros}
-                            onChange={(event) => setFormValues((current) => ({ ...current, comprimentoCentimetros: event.target.value }))}
+                            onChange={(event) => {
+                                setFormValues((current) => ({ ...current, comprimentoCentimetros: event.target.value }));
+                                validateNumberField("comprimentoCentimetros", event.target.value);
+                            }}
+                            errorMessage={formErrors.comprimentoCentimetros}
                             placeholder="Ex.: 25"
                         />
 
@@ -149,7 +207,11 @@ function ProductCreateModal({
                             step="0.01"
                             min="0"
                             value={formValues.larguraCentimetros}
-                            onChange={(event) => setFormValues((current) => ({ ...current, larguraCentimetros: event.target.value }))}
+                            onChange={(event) => {
+                                setFormValues((current) => ({ ...current, larguraCentimetros: event.target.value }));
+                                validateNumberField("larguraCentimetros", event.target.value);
+                            }}
+                            errorMessage={formErrors.larguraCentimetros}
                             placeholder="Ex.: 18"
                         />
 
@@ -160,7 +222,11 @@ function ProductCreateModal({
                             step="0.01"
                             min="0"
                             value={formValues.alturaCentimetros}
-                            onChange={(event) => setFormValues((current) => ({ ...current, alturaCentimetros: event.target.value }))}
+                            onChange={(event) => {
+                                setFormValues((current) => ({ ...current, alturaCentimetros: event.target.value }));
+                                validateNumberField("alturaCentimetros", event.target.value);
+                            }}
+                            errorMessage={formErrors.alturaCentimetros}
                             placeholder="Ex.: 6"
                         />
                     </div>

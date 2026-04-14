@@ -1,15 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.cache import produto_query_cache
 from app.database import get_db
 from app.models.produto import Produto
+from app.security import require_admin_user
 from app.views.produtos import ProdutoUpdatePayload, ProdutoWriteResponse
 
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
 
 @router.put("/{id_produto}", response_model=ProdutoWriteResponse)
-def update_produto(id_produto: str, payload: ProdutoUpdatePayload, db: Session = Depends(get_db)):
+def update_produto(
+    id_produto: str,
+    payload: ProdutoUpdatePayload,
+    db: Session = Depends(get_db),
+    _admin_user=Depends(require_admin_user),
+):
     produto = db.get(Produto, id_produto)
     if not produto:
         raise HTTPException(status_code=404, detail="Produto nao encontrado")
@@ -33,6 +40,7 @@ def update_produto(id_produto: str, payload: ProdutoUpdatePayload, db: Session =
 
     db.commit()
     db.refresh(produto)
+    produto_query_cache.clear()
 
     return ProdutoWriteResponse(
         id_produto=produto.id_produto,

@@ -8,7 +8,7 @@ function normalizeCategoriaForBackend(value: string) {
     return value
         .trim()
         .replaceAll(/\s+/g, "_")
-        .toLocaleUpperCase("pt-BR");
+        .toLocaleLowerCase("pt-BR");
 }
 
 function parseOptionalNumberInput(value: string) {

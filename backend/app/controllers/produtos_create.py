@@ -2,15 +2,21 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
+from app.cache import produto_query_cache
 from app.database import get_db
 from app.models.produto import Produto
+from app.security import require_admin_user
 from app.views.produtos import ProdutoWritePayload, ProdutoWriteResponse
 
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
 
 @router.post("", response_model=ProdutoWriteResponse, status_code=status.HTTP_201_CREATED)
-def create_produto(payload: ProdutoWritePayload, db: Session = Depends(get_db)):
+def create_produto(
+    payload: ProdutoWritePayload,
+    db: Session = Depends(get_db),
+    _admin_user=Depends(require_admin_user),
+):
     if not payload.nome_produto.strip() or not payload.categoria_produto.strip():
         raise HTTPException(status_code=400, detail="Campos obrigatorios nao podem ser vazios")
 
@@ -23,6 +29,7 @@ def create_produto(payload: ProdutoWritePayload, db: Session = Depends(get_db)):
     db.add(produto)
     db.commit()
     db.refresh(produto)
+    produto_query_cache.clear()
 
     return ProdutoWriteResponse(
         id_produto=produto.id_produto,

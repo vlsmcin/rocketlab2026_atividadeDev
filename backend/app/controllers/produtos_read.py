@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.cache import produto_query_cache
 from app.database import get_db
 from app.models.avaliacao_pedido import AvaliacaoPedido
 from app.models.categoria_imagem import CategoriaImagem
@@ -23,6 +24,11 @@ def get_produtos(
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ):
+    cache_key = f"list|title={title or ''}|categoria={categoria or ''}|limit={limit}|offset={offset}"
+    cached_payload = produto_query_cache.get(cache_key)
+    if cached_payload is not None:
+        return cached_payload
+
     filtros = []
 
     if title:
@@ -41,6 +47,15 @@ def get_produtos(
         .subquery()
     )
 
+    pedidos_produto = (
+        select(
+            ItemPedido.id_produto,
+            ItemPedido.id_pedido,
+        )
+        .distinct()
+        .subquery()
+    )
+
     query = (
         select(
             produtos_base.c.id_produto,
@@ -48,15 +63,15 @@ def get_produtos(
             produtos_base.c.categoria_produto,
             CategoriaImagem.url_imagem,
             func.avg(AvaliacaoPedido.avaliacao).label("media_avaliacao"),
-            func.count(AvaliacaoPedido.id_avaliacao).label("quantidade_avaliacoes"),
+            func.count(func.distinct(AvaliacaoPedido.id_avaliacao)).label("quantidade_avaliacoes"),
         )
         .select_from(produtos_base)
         .outerjoin(
             CategoriaImagem,
             produtos_base.c.categoria_produto == CategoriaImagem.categoria_produto,
         )
-        .outerjoin(ItemPedido, produtos_base.c.id_produto == ItemPedido.id_produto)
-        .outerjoin(AvaliacaoPedido, ItemPedido.id_pedido == AvaliacaoPedido.id_pedido)
+        .outerjoin(pedidos_produto, produtos_base.c.id_produto == pedidos_produto.c.id_produto)
+        .outerjoin(AvaliacaoPedido, pedidos_produto.c.id_pedido == AvaliacaoPedido.id_pedido)
         .group_by(
             produtos_base.c.id_produto,
             produtos_base.c.nome_produto,
@@ -68,7 +83,7 @@ def get_produtos(
     )
     produtos = db.execute(query).all()
 
-    return [
+    payload = [
         ProdutoListView(
             id_produto=id_produto,
             nome_produto=nome_produto,
@@ -76,13 +91,21 @@ def get_produtos(
             url_imagem=url_imagem,
             media_avaliacao=round(media_avaliacao, 2) if media_avaliacao is not None else None,
             quantidade_avaliacoes=quantidade_avaliacoes,
-        )
+        ).model_dump()
         for id_produto, nome_produto, categoria_produto, url_imagem, media_avaliacao, quantidade_avaliacoes in produtos
     ]
+
+    produto_query_cache.set(cache_key, payload)
+    return payload
 
 
 @router.get("/{id_produto}")
 def get_produto_by_id(id_produto: str, db: Session = Depends(get_db)):
+    cache_key = f"detail|id={id_produto}"
+    cached_payload = produto_query_cache.get(cache_key)
+    if cached_payload is not None:
+        return cached_payload
+
     produto_base = (
         select(
             Produto.id_produto,
@@ -97,6 +120,13 @@ def get_produto_by_id(id_produto: str, db: Session = Depends(get_db)):
         .subquery()
     )
 
+    pedidos_produto = (
+        select(ItemPedido.id_pedido)
+        .where(ItemPedido.id_produto == id_produto)
+        .distinct()
+        .subquery()
+    )
+
     detalhe_query = (
         select(
             produto_base.c.id_produto,
@@ -108,15 +138,15 @@ def get_produto_by_id(id_produto: str, db: Session = Depends(get_db)):
             produto_base.c.altura_centimetros,
             CategoriaImagem.url_imagem,
             func.avg(AvaliacaoPedido.avaliacao).label("media_avaliacao"),
-            func.count(AvaliacaoPedido.id_avaliacao).label("quantidade_avaliacoes"),
+            func.count(func.distinct(AvaliacaoPedido.id_avaliacao)).label("quantidade_avaliacoes"),
         )
         .select_from(produto_base)
         .outerjoin(
             CategoriaImagem,
             produto_base.c.categoria_produto == CategoriaImagem.categoria_produto,
         )
-        .outerjoin(ItemPedido, produto_base.c.id_produto == ItemPedido.id_produto)
-        .outerjoin(AvaliacaoPedido, ItemPedido.id_pedido == AvaliacaoPedido.id_pedido)
+        .outerjoin(pedidos_produto, pedidos_produto.c.id_pedido.is_not(None))
+        .outerjoin(AvaliacaoPedido, pedidos_produto.c.id_pedido == AvaliacaoPedido.id_pedido)
         .group_by(
             produto_base.c.id_produto,
             produto_base.c.nome_produto,
@@ -180,7 +210,7 @@ def get_produto_by_id(id_produto: str, db: Session = Depends(get_db)):
     avaliacoes = db.execute(avaliacoes_query).all()
     vendedores = db.execute(vendedores_query).all()
 
-    return ProdutoDetailView(
+    payload = ProdutoDetailView(
         id_produto=detalhe.id_produto,
         nome_produto=detalhe.nome_produto,
         categoria_produto=detalhe.categoria_produto,
@@ -213,4 +243,7 @@ def get_produto_by_id(id_produto: str, db: Session = Depends(get_db)):
             for id_vendedor, nome_vendedor, preco_brl, cidade, estado in vendedores
         ]
         or None,
-    )
+    ).model_dump()
+
+    produto_query_cache.set(cache_key, payload)
+    return payload

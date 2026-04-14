@@ -86,6 +86,26 @@ A API estará disponível em: [http://localhost:8000](http://localhost:8000)
 
 Documentação: [http://localhost:8000/docs](http://localhost:8000/docs)
 
+## Autenticação e População do DB
+
+O backend agora expõe JWT em `POST /auth/login` e `GET /auth/me`.
+
+Para criar o usuário administrador padrão e popular o banco de dados:
+
+```bash
+python seed.py
+```
+
+Para apenas criar o usuário administrador padrão:
+
+```bash
+python seed.py --only admin
+```
+
+Se quiser recriar o admin com as credenciais do `.env`, use `--force`.
+
+Por padrão, o admin usa `admin@example.com` e `admin123` em ambiente local.
+
 ---
 
 ## Estrutura do projeto

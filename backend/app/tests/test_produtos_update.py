@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from app.models.produto import Produto
 
 
-def test_update_produto_retorna_200(client: TestClient, db_session):
+def test_update_produto_retorna_200(client: TestClient, db_session, admin_headers):
     db_session.add(
         Produto(
             id_produto="prod-crud-2",
@@ -20,6 +20,7 @@ def test_update_produto_retorna_200(client: TestClient, db_session):
 
     response = client.put(
         "/produtos/prod-crud-2",
+        headers=admin_headers,
         json={
             "nome_produto": "Smartwatch Pro",
             "categoria_produto": "eletronicos_vestiveis",
@@ -36,9 +37,10 @@ def test_update_produto_retorna_200(client: TestClient, db_session):
     assert produto.nome_produto == "Smartwatch Pro"
 
 
-def test_update_produto_retorna_404_quando_nao_existe(client: TestClient):
+def test_update_produto_retorna_404_quando_nao_existe(client: TestClient, admin_headers):
     response = client.put(
         "/produtos/prod-nao-existe",
+        headers=admin_headers,
         json={"nome_produto": "Sem efeito"},
     )
 
@@ -46,7 +48,37 @@ def test_update_produto_retorna_404_quando_nao_existe(client: TestClient):
     assert response.json() == {"detail": "Produto nao encontrado"}
 
 
-def test_update_produto_retorna_400_quando_payload_vazio(client: TestClient, db_session):
+def test_update_produto_invalida_cache_de_detalhe(client: TestClient, db_session, admin_headers):
+    db_session.add(
+        Produto(
+            id_produto="prod-cache-upd",
+            nome_produto="Nome Antigo",
+            categoria_produto="audio",
+            peso_produto_gramas=100,
+            comprimento_centimetros=10,
+            altura_centimetros=5,
+            largura_centimetros=5,
+        )
+    )
+    db_session.commit()
+
+    detalhe_antes = client.get("/produtos/prod-cache-upd")
+    assert detalhe_antes.status_code == 200
+    assert detalhe_antes.json()["nome_produto"] == "Nome Antigo"
+
+    atualizacao = client.put(
+        "/produtos/prod-cache-upd",
+        headers=admin_headers,
+        json={"nome_produto": "Nome Novo"},
+    )
+    assert atualizacao.status_code == 200
+
+    detalhe_depois = client.get("/produtos/prod-cache-upd")
+    assert detalhe_depois.status_code == 200
+    assert detalhe_depois.json()["nome_produto"] == "Nome Novo"
+
+
+def test_update_produto_retorna_400_quando_payload_vazio(client: TestClient, db_session, admin_headers):
     db_session.add(
         Produto(
             id_produto="prod-crud-3",
@@ -60,7 +92,7 @@ def test_update_produto_retorna_400_quando_payload_vazio(client: TestClient, db_
     )
     db_session.commit()
 
-    response = client.put("/produtos/prod-crud-3", json={})
+    response = client.put("/produtos/prod-crud-3", headers=admin_headers, json={})
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Nenhum campo para atualizar"}
@@ -81,6 +113,7 @@ def test_update_produto_retorna_400_quando_payload_vazio(client: TestClient, db_
 def test_update_produto_retorna_400_quando_texto_esta_vazio(
     client: TestClient,
     db_session,
+    admin_headers,
     payload: dict,
 ):
     db_session.add(
@@ -96,7 +129,7 @@ def test_update_produto_retorna_400_quando_texto_esta_vazio(
     )
     db_session.commit()
 
-    response = client.put("/produtos/prod-crud-4", json=payload)
+    response = client.put("/produtos/prod-crud-4", headers=admin_headers, json=payload)
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Campos texto nao podem ser vazios"}

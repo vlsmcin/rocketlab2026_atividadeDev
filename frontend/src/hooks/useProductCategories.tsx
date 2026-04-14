@@ -17,7 +17,7 @@ function useProductCategories(): UseProductCategoriesResult {
         try {
             const response = await api.get("/produtos", {
                 params: {
-                    limit: 200,
+                    limit: 100,
                     offset: 0,
                 },
             });

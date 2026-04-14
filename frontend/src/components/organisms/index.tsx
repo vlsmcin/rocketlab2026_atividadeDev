@@ -6,6 +6,7 @@ import ProductReviewList from "./productReviewList";
 import ProductSellerList from "./productSellerList";
 import ProductCreateModal from "./productCreateModal";
 import ConfirmActionModal from "./confirmActionModal";
+import AuthLoginModal from "./authLoginModal.tsx";
 
 export {
 	ProductCard,
@@ -16,4 +17,5 @@ export {
 	ProductSellerList,
 	ProductCreateModal,
 	ConfirmActionModal,
+	AuthLoginModal,
 };

@@ -53,7 +53,7 @@ function ProductDetailHero({ product }: ProductDetailHeroProps) {
                 <div className="flex flex-wrap items-center gap-3">
                     <ReviewStars averageReviews={product.averageRating} />
                     <p className="text-sm text-slate-600">
-                        {product.averageRating.toFixed(1)} ({product.reviewCount} avaliação{product.reviewCount === 1 ? "" : "ões"})
+                        {product.averageRating.toFixed(1)} ({product.reviewCount} {product.reviewCount === 1 ? "avaliação" : "avaliações"})
                     </p>
                 </div>
 

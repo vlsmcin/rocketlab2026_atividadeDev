@@ -4,9 +4,10 @@ from fastapi.testclient import TestClient
 from app.models.produto import Produto
 
 
-def test_create_produto_retorna_201(client: TestClient, db_session):
+def test_create_produto_retorna_201(client: TestClient, db_session, admin_headers):
     response = client.post(
         "/produtos",
+        headers=admin_headers,
         json={
             "nome_produto": "Camera 4K",
             "categoria_produto": "eletronicos",
@@ -27,6 +28,26 @@ def test_create_produto_retorna_201(client: TestClient, db_session):
     assert produto.nome_produto == "Camera 4K"
 
 
+def test_create_produto_invalida_cache_de_listagem(client: TestClient, admin_headers):
+    primeira_listagem = client.get("/produtos")
+    assert primeira_listagem.status_code == 200
+    assert primeira_listagem.json() == []
+
+    criacao = client.post(
+        "/produtos",
+        headers=admin_headers,
+        json={
+            "nome_produto": "Produto Cache",
+            "categoria_produto": "teste_cache",
+        },
+    )
+    assert criacao.status_code == 201
+
+    segunda_listagem = client.get("/produtos")
+    assert segunda_listagem.status_code == 200
+    assert len(segunda_listagem.json()) == 1
+
+
 @pytest.mark.parametrize(
     "payload",
     [
@@ -42,10 +63,12 @@ def test_create_produto_retorna_201(client: TestClient, db_session):
 )
 def test_create_produto_retorna_400_quando_campo_obrigatorio_esta_vazio(
     client: TestClient,
+    admin_headers,
     payload: dict,
 ):
     response = client.post(
         "/produtos",
+        headers=admin_headers,
         json=payload,
     )
 
@@ -66,11 +89,22 @@ def test_create_produto_retorna_400_quando_campo_obrigatorio_esta_vazio(
 )
 def test_create_produto_retorna_422_quando_campo_obrigatorio_esta_ausente(
     client: TestClient,
+    admin_headers,
     payload: dict,
 ):
     response = client.post(
         "/produtos",
+        headers=admin_headers,
         json=payload,
     )
 
     assert response.status_code == 422
+
+
+def test_create_produto_retorna_401_quando_nao_autenticado(client: TestClient):
+    response = client.post(
+        "/produtos",
+        json={"nome_produto": "Camera 4K", "categoria_produto": "eletronicos"},
+    )
+
+    assert response.status_code == 401

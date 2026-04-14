@@ -5,6 +5,9 @@ export type {
 	BackendVendedor,
 	Produto,
 	ProdutoAvaliacao,
+	ProdutoCreateFormData,
+	ProdutoCreatePayload,
 	ProdutoDetail,
+	ProdutoUpdatePayload,
 	ProdutoVendedor,
 } from "./produtos";

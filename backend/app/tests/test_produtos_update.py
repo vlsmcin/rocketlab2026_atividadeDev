@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.models.produto import Produto
@@ -67,4 +68,40 @@ def test_update_produto_retorna_400_quando_payload_vazio(client: TestClient, db_
     produto = db_session.get(Produto, "prod-crud-3")
     assert produto is not None
     assert produto.nome_produto == "Caixa de Som"
+    assert produto.categoria_produto == "audio"
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"nome_produto": "   "},
+        {"categoria_produto": "   "},
+    ],
+)
+def test_update_produto_retorna_400_quando_texto_esta_vazio(
+    client: TestClient,
+    db_session,
+    payload: dict,
+):
+    db_session.add(
+        Produto(
+            id_produto="prod-crud-4",
+            nome_produto="Headset",
+            categoria_produto="audio",
+            peso_produto_gramas=300,
+            comprimento_centimetros=18,
+            altura_centimetros=9,
+            largura_centimetros=17,
+        )
+    )
+    db_session.commit()
+
+    response = client.put("/produtos/prod-crud-4", json=payload)
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Campos texto nao podem ser vazios"}
+
+    produto = db_session.get(Produto, "prod-crud-4")
+    assert produto is not None
+    assert produto.nome_produto == "Headset"
     assert produto.categoria_produto == "audio"

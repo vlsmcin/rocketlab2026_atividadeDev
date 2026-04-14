@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.models.produto import Produto
@@ -52,14 +53,33 @@ def test_create_produto_retorna_409_para_id_duplicado(client: TestClient, db_ses
     assert response.json() == {"detail": "Produto ja existe"}
 
 
-def test_create_produto_retorna_400_quando_campos_obrigatorios_vazios(client: TestClient):
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
+            "id_produto": "   ",
+            "nome_produto": "Produto Teste",
+            "categoria_produto": "eletronicos",
+        },
+        {
+            "id_produto": "prod-invalid-2",
+            "nome_produto": "   ",
+            "categoria_produto": "eletronicos",
+        },
+        {
+            "id_produto": "prod-invalid-3",
+            "nome_produto": "Produto Teste",
+            "categoria_produto": "   ",
+        },
+    ],
+)
+def test_create_produto_retorna_400_quando_campo_obrigatorio_esta_vazio(
+    client: TestClient,
+    payload: dict,
+):
     response = client.post(
         "/produtos",
-        json={
-            "id_produto": "   ",
-            "nome_produto": "",
-            "categoria_produto": "  ",
-        },
+        json=payload,
     )
 
     assert response.status_code == 400

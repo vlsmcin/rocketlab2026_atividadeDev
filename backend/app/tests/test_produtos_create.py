@@ -27,6 +27,25 @@ def test_create_produto_retorna_201(client: TestClient, db_session):
     assert produto.nome_produto == "Camera 4K"
 
 
+def test_create_produto_invalida_cache_de_listagem(client: TestClient):
+    primeira_listagem = client.get("/produtos")
+    assert primeira_listagem.status_code == 200
+    assert primeira_listagem.json() == []
+
+    criacao = client.post(
+        "/produtos",
+        json={
+            "nome_produto": "Produto Cache",
+            "categoria_produto": "teste_cache",
+        },
+    )
+    assert criacao.status_code == 201
+
+    segunda_listagem = client.get("/produtos")
+    assert segunda_listagem.status_code == 200
+    assert len(segunda_listagem.json()) == 1
+
+
 @pytest.mark.parametrize(
     "payload",
     [

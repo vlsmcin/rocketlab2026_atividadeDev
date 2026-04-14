@@ -14,8 +14,16 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 
+from app.cache import produto_query_cache
 from app.database import Base, get_db
 from app.router import api_router
+
+
+@pytest.fixture(autouse=True)
+def clear_query_cache_between_tests():
+    produto_query_cache.clear()
+    yield
+    produto_query_cache.clear()
 
 
 @pytest.fixture

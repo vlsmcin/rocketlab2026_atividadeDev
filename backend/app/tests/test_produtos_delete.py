@@ -63,3 +63,27 @@ def test_delete_produto_retorna_404_quando_nao_existe(client: TestClient):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Produto nao encontrado"}
+
+
+def test_delete_produto_invalida_cache_de_detalhe(client: TestClient, db_session):
+    db_session.add(
+        Produto(
+            id_produto="prod-cache-del",
+            nome_produto="Produto Para Remover",
+            categoria_produto="teste",
+            peso_produto_gramas=120,
+            comprimento_centimetros=12,
+            altura_centimetros=6,
+            largura_centimetros=8,
+        )
+    )
+    db_session.commit()
+
+    detalhe_antes = client.get("/produtos/prod-cache-del")
+    assert detalhe_antes.status_code == 200
+
+    remocao = client.delete("/produtos/prod-cache-del")
+    assert remocao.status_code == 204
+
+    detalhe_depois = client.get("/produtos/prod-cache-del")
+    assert detalhe_depois.status_code == 404

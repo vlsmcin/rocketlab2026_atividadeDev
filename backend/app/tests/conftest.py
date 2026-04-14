@@ -16,7 +16,9 @@ if str(BACKEND_ROOT) not in sys.path:
 
 from app.cache import produto_query_cache
 from app.database import Base, get_db
+from app.models import User
 from app.router import api_router
+from app.security import hash_password
 
 
 @pytest.fixture(autouse=True)
@@ -36,6 +38,16 @@ def db_session(tmp_path: Path):
 
     session = testing_session_local()
     try:
+        session.add(
+            User(
+                id_user="user-admin-default",
+                username="admin@example.com",
+                password_hash=hash_password("admin123"),
+                role="admin",
+                is_active=True,
+            )
+        )
+        session.commit()
         yield session
     finally:
         session.close()
@@ -55,3 +67,15 @@ def client(db_session):
 
     app.dependency_overrides[get_db] = override_get_db
     return TestClient(app)
+
+
+@pytest.fixture
+def admin_headers(client: TestClient):
+    response = client.post(
+        "/auth/login",
+        json={"username": "admin@example.com", "password": "admin123"},
+    )
+
+    assert response.status_code == 200
+    access_token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {access_token}"}

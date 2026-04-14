@@ -4,7 +4,7 @@ from sqlalchemy import select
 from app.models import Consumidor, ItemPedido, Pedido, Produto, Vendedor
 
 
-def test_delete_produto_remove_referencias_em_cascata(client: TestClient, db_session):
+def test_delete_produto_remove_referencias_em_cascata(client: TestClient, db_session, admin_headers):
     db_session.add_all(
         [
             Consumidor(
@@ -47,7 +47,7 @@ def test_delete_produto_remove_referencias_em_cascata(client: TestClient, db_ses
     )
     db_session.commit()
 
-    response = client.delete("/produtos/prod-del-1")
+    response = client.delete("/produtos/prod-del-1", headers=admin_headers)
 
     assert response.status_code == 204
     assert db_session.get(Produto, "prod-del-1") is None
@@ -58,14 +58,14 @@ def test_delete_produto_remove_referencias_em_cascata(client: TestClient, db_ses
     assert itens == []
 
 
-def test_delete_produto_retorna_404_quando_nao_existe(client: TestClient):
-    response = client.delete("/produtos/prod-nao-existe")
+def test_delete_produto_retorna_404_quando_nao_existe(client: TestClient, admin_headers):
+    response = client.delete("/produtos/prod-nao-existe", headers=admin_headers)
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Produto nao encontrado"}
 
 
-def test_delete_produto_invalida_cache_de_detalhe(client: TestClient, db_session):
+def test_delete_produto_invalida_cache_de_detalhe(client: TestClient, db_session, admin_headers):
     db_session.add(
         Produto(
             id_produto="prod-cache-del",
@@ -82,7 +82,7 @@ def test_delete_produto_invalida_cache_de_detalhe(client: TestClient, db_session
     detalhe_antes = client.get("/produtos/prod-cache-del")
     assert detalhe_antes.status_code == 200
 
-    remocao = client.delete("/produtos/prod-cache-del")
+    remocao = client.delete("/produtos/prod-cache-del", headers=admin_headers)
     assert remocao.status_code == 204
 
     detalhe_depois = client.get("/produtos/prod-cache-del")

@@ -36,3 +36,31 @@ class ProdutoDetailView(BaseModel):
     quantidade_avaliacoes: int
     avaliacoes: list[AvaliacaoView] | None
     vendedores: list[VendedorView] | None
+
+
+class ProdutoWritePayload(BaseModel):
+    nome_produto: str
+    categoria_produto: str
+    peso_produto_gramas: float | None = None
+    comprimento_centimetros: float | None = None
+    largura_centimetros: float | None = None
+    altura_centimetros: float | None = None
+
+
+class ProdutoUpdatePayload(BaseModel):
+    nome_produto: str | None = None
+    categoria_produto: str | None = None
+    peso_produto_gramas: float | None = None
+    comprimento_centimetros: float | None = None
+    largura_centimetros: float | None = None
+    altura_centimetros: float | None = None
+
+
+class ProdutoWriteResponse(BaseModel):
+    id_produto: str
+    nome_produto: str
+    categoria_produto: str
+    peso_produto_gramas: float | None
+    comprimento_centimetros: float | None
+    largura_centimetros: float | None
+    altura_centimetros: float | None

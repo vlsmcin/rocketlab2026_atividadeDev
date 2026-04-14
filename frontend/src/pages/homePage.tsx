@@ -1,27 +1,78 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProductList } from "../components/templates";
-import { ProductFilters } from "../components/organisms";
+import { ProductCreateModal, ProductFilters } from "../components/organisms";
 import { PaginationControls } from "../components/molecules";
-import { useProductFilters, useProductList } from "../hooks";
+import { useProductCreate, useProductFilters, useProductList } from "../hooks";
+import type { ProdutoCreateFormData } from "../types/produtos";
+import { normalizeCategoriaForBackend } from "../utils/produtos";
+
+function parseOptionalNumber(value: string) {
+    if (!value.trim()) {
+        return null;
+    }
+
+    const parsedValue = Number(value.replace(",", "."));
+
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+}
 
 function HomePage() {
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const {
         searchTerm,
         activeCategory,
         categories,
         setSearchTerm,
         setActiveCategory,
+        refetchCategories,
     } = useProductFilters();
+    const { isCreating, createError, clearCreateError, createProduct } = useProductCreate();
 
-    const { products, isLoading, hasNextPage } = useProductList({
+    const { products, isLoading, hasNextPage, refetchProducts } = useProductList({
         page,
         limit: 12,
         title: searchTerm,
         categoria: activeCategory === "Todos" ? undefined : activeCategory,
     });
+
+    const handleOpenCreateModal = () => {
+        clearCreateError();
+        setIsCreateModalOpen(true);
+    };
+
+    const handleCloseCreateModal = () => {
+        if (isCreating) {
+            return;
+        }
+
+        clearCreateError();
+        setIsCreateModalOpen(false);
+    };
+
+    const handleCreateProduct = async (formValues: ProdutoCreateFormData) => {
+        const created = await createProduct({
+            nome_produto: formValues.nomeProduto.trim(),
+            categoria_produto: normalizeCategoriaForBackend(formValues.categoriaProduto),
+            peso_produto_gramas: parseOptionalNumber(formValues.pesoProdutoGramas),
+            comprimento_centimetros: parseOptionalNumber(formValues.comprimentoCentimetros),
+            largura_centimetros: parseOptionalNumber(formValues.larguraCentimetros),
+            altura_centimetros: parseOptionalNumber(formValues.alturaCentimetros),
+        });
+
+        if (!created) {
+            return;
+        }
+
+        setIsCreateModalOpen(false);
+        setSearchTerm("");
+        setActiveCategory("Todos");
+        setPage(1);
+        refetchProducts();
+        await refetchCategories();
+    };
 
     useEffect(() => {
         setPage(1);
@@ -30,8 +81,18 @@ function HomePage() {
     return (
         <main className="min-h-screen bg-slate-50">
             <header className="border-b border-slate-200 bg-slate-100/90">
-                <div className="container mx-auto px-4 py-6">
-                    <h1 className="text-4xl font-bold text-slate-900">Produtos</h1>
+                <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-6">
+                    <div>
+                        <h1 className="text-4xl font-bold text-slate-900">Gerenciador de Produtos</h1>
+                        <p className="mt-1 text-lg text-slate-600">{products.length} produtos no catálogo</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleOpenCreateModal}
+                        className="cursor-pointer rounded-xl bg-indigo-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-indigo-700"
+                    >
+                        + Novo Produto
+                    </button>
                 </div>
             </header>
 
@@ -69,6 +130,15 @@ function HomePage() {
                     </div>
                 </div>
             )}
+
+            <ProductCreateModal
+                isOpen={isCreateModalOpen}
+                categories={categories}
+                isSubmitting={isCreating}
+                errorMessage={createError}
+                onClose={handleCloseCreateModal}
+                onSubmit={handleCreateProduct}
+            />
         </main>
     );
 }

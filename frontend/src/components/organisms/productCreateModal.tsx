@@ -8,6 +8,9 @@ type ProductCreateModalProps = {
     categories: string[];
     isSubmitting: boolean;
     errorMessage: string | null;
+    title?: string;
+    submitLabel?: string;
+    initialValues?: Partial<ProdutoCreateFormData>;
     onClose: () => void;
     onSubmit: (values: ProdutoCreateFormData) => Promise<void>;
 };
@@ -26,6 +29,9 @@ function ProductCreateModal({
     categories,
     isSubmitting,
     errorMessage,
+    title = "Novo Produto",
+    submitLabel = "Salvar produto",
+    initialValues,
     onClose,
     onSubmit,
 }: ProductCreateModalProps) {
@@ -42,9 +48,10 @@ function ProductCreateModal({
 
         setFormValues({
             ...INITIAL_FORM_VALUES,
-            categoriaProduto: availableCategories[0] ?? "",
+            ...initialValues,
+            categoriaProduto: initialValues?.categoriaProduto ?? availableCategories[0] ?? "",
         });
-    }, [availableCategories, isOpen]);
+    }, [availableCategories, initialValues, isOpen]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -77,7 +84,7 @@ function ProductCreateModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-8">
             <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
                 <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-                    <h2 className="text-2xl font-bold text-slate-900">Novo Produto</h2>
+                    <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -164,7 +171,7 @@ function ProductCreateModal({
                         </p>
                     )}
 
-                    <ProductCreateActions isSubmitting={isSubmitting} onCancel={onClose} />
+                    <ProductCreateActions isSubmitting={isSubmitting} onCancel={onClose} submitLabel={submitLabel} />
                 </form>
             </div>
         </div>

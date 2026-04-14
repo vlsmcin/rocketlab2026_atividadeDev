@@ -5,6 +5,7 @@ import ProductDetailSections from "./productDetailSections";
 import ProductReviewList from "./productReviewList";
 import ProductSellerList from "./productSellerList";
 import ProductCreateModal from "./productCreateModal";
+import ConfirmActionModal from "./confirmActionModal";
 
 export {
 	ProductCard,
@@ -14,4 +15,5 @@ export {
 	ProductReviewList,
 	ProductSellerList,
 	ProductCreateModal,
+	ConfirmActionModal,
 };

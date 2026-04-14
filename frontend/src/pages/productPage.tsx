@@ -130,58 +130,62 @@ function ProductPage() {
     return (
         <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.08),_transparent_34%),linear-gradient(180deg,#f8fafc_0%,#f8fafc_45%,#eef2ff_100%)] text-slate-900">
             <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8">
-                <header className="flex items-center justify-between gap-4 rounded-[1.5rem] bg-white/85 px-4 py-4 shadow-sm ring-1 ring-slate-200 backdrop-blur md:px-6">
+                <header className="flex flex-col gap-4 rounded-[1.5rem] bg-white/85 px-4 py-4 shadow-sm ring-1 ring-slate-200 backdrop-blur md:flex-row md:items-center md:justify-between md:px-6">
                     <Link
                         to="/"
-                        className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 transition-colors hover:text-slate-950"
+                        className="inline-flex w-fit items-center gap-2 text-sm font-medium text-slate-700 transition-colors hover:text-slate-950"
                     >
                         <span aria-hidden="true">←</span>
                         Voltar
                     </Link>
 
-                    <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+                    <div className="flex w-full flex-col gap-3 md:ml-auto md:w-auto md:flex-row md:flex-wrap md:items-center md:justify-end">
                         {isAuthenticated && user && (
-                            <p className="text-sm font-medium text-slate-600">{user.username} ({user.role})</p>
+                            <p className="rounded-2xl bg-slate-50 px-4 py-2 text-center text-sm font-medium text-slate-600 md:text-right">
+                                {user.username} ({user.role})
+                            </p>
                         )}
 
-                        {isAdmin && (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={handleOpenEditModal}
-                                    disabled={!product || isLoading}
-                                    className="cursor-pointer rounded-2xl border border-slate-300 bg-white px-5 py-2.5 text-lg font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    Editar
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleOpenDeleteModal}
-                                    disabled={!product || isLoading}
-                                    className="cursor-pointer rounded-2xl bg-red-600 px-5 py-2.5 text-lg font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    Remover
-                                </button>
-                            </>
-                        )}
+                        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
+                            {isAdmin && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={handleOpenEditModal}
+                                        disabled={!product || isLoading}
+                                        className="w-full cursor-pointer rounded-2xl border border-slate-300 bg-white px-5 py-2.5 text-lg font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                                    >
+                                        Editar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleOpenDeleteModal}
+                                        disabled={!product || isLoading}
+                                        className="w-full cursor-pointer rounded-2xl bg-red-600 px-5 py-2.5 text-lg font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                                    >
+                                        Remover
+                                    </button>
+                                </>
+                            )}
 
-                        {!isAuthenticated ? (
-                            <button
-                                type="button"
-                                onClick={handleOpenLoginModal}
-                                className="cursor-pointer rounded-xl bg-indigo-600 px-5 py-2.5 text-base font-semibold text-white transition hover:bg-indigo-700"
-                            >
-                                Entrar
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={logout}
-                                className="cursor-pointer rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-base font-semibold text-slate-700 transition hover:bg-slate-100"
-                            >
-                                Sair
-                            </button>
-                        )}
+                            {!isAuthenticated ? (
+                                <button
+                                    type="button"
+                                    onClick={handleOpenLoginModal}
+                                    className="w-full cursor-pointer rounded-xl bg-indigo-600 px-5 py-2.5 text-base font-semibold text-white transition hover:bg-indigo-700 sm:w-auto"
+                                >
+                                    Entrar
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={logout}
+                                    className="w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-base font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto"
+                                >
+                                    Sair
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </header>
 
